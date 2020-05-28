@@ -5,7 +5,7 @@
   Raluca Nicola - Product Engineer ArcGIS API for JavaScript
 </p>
 <p><br/><small>
-International Master of Cartography, 24 May 2020
+International Master of Cartography - May 28, 2020
 </small></p>
 
 ---
