@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>Vector data</title>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.15/"></script>
+
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/GraphicsLayer",
+      "esri/layers/Layer",
+      "esri/Graphic"
+    ], function (Map, SceneView, GraphicsLayer, Layer, Graphic) {
+
+      Layer.fromPortalItem({
+        portalItem: {
+          id: "3a75a3ee1d1040838f382cbefce99125"
+        }
+      }).then(function (layer) {
+        var map = new Map({
+          basemap: {
+            baseLayers: [layer]
+          },
+          ground: "world-elevation"
+        });
+
+        var view = new SceneView({
+          container: "viewDiv",
+          map: map,
+          camera: {
+            position: [
+              10.16296760,
+              46.68842817,
+              3887.66480
+            ],
+            heading: 279.61,
+            tilt: 75.23
+          }
+        });
+
+        /*********************
+         * Add graphics layer
+         *********************/
+
+        var graphicsLayer = new GraphicsLayer();
+        map.add(graphicsLayer);
+
+        /*************************
+         * Add a 3D point graphic
+         *************************/
+
+        // London
+        var point = {
+          type: "point", // autocasts as new Point()
+          x: 1120290.498,
+          y: 5892467.648,
+          z: 2344.54,
+          spatialReference: {
+            wkid: 3857
+          }
+        };
+
+        markerSymbol = {
+          type: "simple-marker", // autocasts as new SimpleMarkerSymbol()
+          color: [226, 119, 40],
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            color: [255, 255, 255],
+            width: 2
+          }
+        };
+
+        var pointGraphic = new Graphic({
+          geometry: point,
+          symbol: markerSymbol
+        });
+
+        graphicsLayer.add(pointGraphic);
+
+        /****************************
+         * Add a 3D polyline graphic
+         ****************************/
+
+        var polyline = {
+          type: "polyline", // autocasts as new Polyline()
+          paths: [
+            [1120301.446800976, 5892818.552009651, 2455.21],
+            [1121062.0666826775, 5893003.675905717, 2196.00],
+            [1121832.081323377, 5892671.171346705, 1851.03],
+            [1122022.3108628269, 5893284.775336754, 1804.43]
+          ],
+          spatialReference: {
+            wkid: 3857
+          }
+        };
+
+        lineSymbol = {
+          type: "simple-line", // autocasts as SimpleLineSymbol()
+          color: [226, 119, 40],
+          width: 4
+        };
+
+        var polylineGraphic = new Graphic({
+          geometry: polyline,
+          symbol: lineSymbol
+        });
+
+        graphicsLayer.add(polylineGraphic);
+
+        /***************************
+         * Add a 3D polygon graphic
+         ***************************/
+
+        var polygon = {
+          type: "polygon", // autocasts as new Polygon()
+          rings: [
+            [1122680.235724038, 5892093.489856494, 1482.445],
+            [1122854.026080841, 5893073.145858282, 1482.445],
+            [1123710.6067883337, 5892852.531714192, 1482.445],
+            [1123328.497848323, 5892102.065321039, 1482.445],
+            [1122680.235724038, 5892093.489856494, 1482.445]
+          ],
+          spatialReference: {
+            wkid: 3857
+          }
+        };
+
+        var fillSymbol = {
+          type: "simple-fill", // autocasts as new SimpleFillSymbol()
+          color: [227, 139, 79, 0.8],
+          outline: {
+            // autocasts as new SimpleLineSymbol()
+            color: [255, 255, 255],
+            width: 1
+          }
+        };
+
+        var polygonGraphic = new Graphic({
+          geometry: polygon,
+          symbol: fillSymbol
+        });
+
+        graphicsLayer.add(polygonGraphic);
+
+        function onclick(buttonId, onclick) {
+          var button = window.parent.document.getElementById(buttonId);
+          if (button && onclick) {
+            button.onclick = function() {
+              view.when(onclick).catch(console.error);
+            };
+          }
+        }
+
+        onclick("onTheGround", function(event) {
+          graphicsLayer.elevationInfo = {
+            mode: "on-the-ground"
+          }
+        });
+
+        onclick("relativeToGround", function(event) {
+          graphicsLayer.elevationInfo = {
+            mode: "relative-to-ground",
+            offset: 200,
+            featureExpressionInfo: {
+              expression: 0
+            }
+          }
+        });
+
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>

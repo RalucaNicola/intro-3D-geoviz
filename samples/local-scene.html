@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+  <title>Local scene</title>
+
+  <style>
+  html, body, #viewDiv {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+  }
+
+  </style>
+
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.15/"></script>
+
+  <script>
+    require([
+        "esri/Map",
+        "esri/views/SceneView",
+        "esri/layers/Layer"
+      ], function(Map, SceneView, Layer) {
+        Layer.fromPortalItem({
+          portalItem: {
+            id: "3a75a3ee1d1040838f382cbefce99125"
+            }
+          }).then(function(layer) {
+          const map = new Map({
+            basemap: {
+              baseLayers: [ layer ]
+            },
+            ground: "world-elevation"
+          });
+
+          const view = new SceneView({
+            container: "viewDiv",
+            map: map,
+            qualityProfile: "high",
+            viewingMode: "local"
+          });
+        });
+    });
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv"></div>
+</body>
+
+</html>

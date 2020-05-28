@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>City Point Styles - Relative to scene mimic</title>
+
+  <!--  <link rel="stylesheet" href="../../../arcgis-js-api-4/esri/css/main.css">
+
+  <script data-dojo-config="async: true, isDebug: true" src="../../../arcgis-js-api-4/dojo/dojo.js"></script>-->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.15/esri/css/main.css">
+  <script src="https://js.arcgis.com/4.15/"></script>
+  <style>
+    html,
+    body,
+    #viewDiv {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: "Avenir Next W00", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    #menu {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      max-width: 200px;
+      padding: 1em;
+      background-color: rgb(255, 255, 255);
+    }
+
+    .click {
+      color: #8daaeb;
+      text-decoration: none;
+      -webkit-transition: color .15s ease;
+      -moz-transition: color .15s ease;
+      transition: color .15s ease;
+      cursor: pointer;
+    }
+
+    .click:hover {
+      color: #273d96;
+      text-shadow: none;
+      border: none;
+    }
+  </style>
+
+  <script>
+
+    require([
+      "esri/Map",
+      "esri/views/SceneView",
+      "esri/layers/Layer",
+      "esri/layers/support/LabelClass",
+      "esri/layers/FeatureLayer",
+      "esri/layers/TileLayer",
+      "esri/layers/GraphicsLayer",
+      "esri/geometry/geometryEngine",
+      "esri/geometry/Polyline",
+      "esri/geometry/Point",
+      "esri/Graphic"
+    ], function (Map, SceneView, Layer, LabelClass,
+      FeatureLayer, TileLayer, GraphicsLayer,
+      geometryEngine, Polyline, Point, Graphic) {
+      const travels = [
+        {
+          x: 2906441.563516,
+          y: 5529760.374263,
+          city: "Bucharest",
+          country: "Romania",
+          title: "Bachelor Geography, 2008-2011"
+        }, {
+          x: 339991.901812,
+          y: 6555851.041963,
+          city: "Lille",
+          country: "France",
+          title: "Erasmus exchange, 2010"
+        }, {
+          x: 1290257.037454,
+          y: 6129638.172245,
+          city: "Munich",
+          country: "Germany",
+          title: "MSc. Cartography, Semester I, 2011"
+        }, {
+          x: 1826539.227903,
+          y: 6138199.119413,
+          city: "Vienna",
+          country: "Austria",
+          title: "MSc. Cartography, Semester II, 2012"
+        }, {
+          x: 1531186.550609,
+          y: 6628007.596664,
+          city: "Dresden",
+          country: "Germany",
+          title: "MSc. Cartography, Semester III, 2012"
+        }, {
+          x: 1123724.4266370186,
+          y: 5892802.984320568,
+          city: "Zernez",
+          country: "Switzerland"
+        },{
+          x: 950876.631868,
+          y: 6004892.942083,
+          city: "Zurich",
+          country: "Switzerland",
+          title: "Working in Cartography, since 2013"
+        }
+      ];
+
+      const graphics = travels.map(function (point, i) {
+        return {
+          geometry: {
+            type: "point",
+            x: point.x,
+            y: point.y,
+            spatialReference: {
+              wkid: 3857
+            }
+          },
+          attributes: {
+            OBJECTID: i,
+            name: point.city
+          }
+        }
+      });
+
+      const citiesLayer = new FeatureLayer({
+        source: graphics,
+        objectIdField: "OBJECTID",
+        fields: [
+          {
+            name: "OBJECTID",
+            type: "oid"
+          },
+          {
+            name: "name",
+            type: "string"
+          }
+        ],
+        renderer: {
+          type: "simple",
+          symbol: {
+            type: "point-3d",
+            symbolLayers: [{
+              type: "icon",
+              resource: { primitive: "circle" },
+              material: { color: [0, 0, 0, 0.8] },
+              size: 5
+            }],
+            verticalOffset: {
+              screenLength: 40,
+              maxWorldLength: 65000,
+              minWorldLength: 0
+            },
+            callout: {
+              type: "line",
+              size: 0.8,
+              color: [0, 0, 0, 0.8]
+            }
+          }
+        },
+        labelingInfo: [
+          new LabelClass({
+            labelExpressionInfo: { expression: "$feature.name" },
+            symbol: {
+              type: "label-3d",
+              symbolLayers: [{
+                type: "text",
+                material: {
+                  color: [0, 0, 0, 0.8]
+                },
+                font: {
+                  size: 12,
+                  family: '"Avenir Next W00","Helvetica Neue",Helvetica,Arial,sans-serif',
+                  weight: "bold"
+                }
+              }]
+            }
+          })
+        ]
+      });
+
+      var graphicsLayer = new GraphicsLayer();
+
+      const colorEnd = [226, 97, 97];
+      const colorStart = [226, 200, 97];
+      function getColor(i, total) {
+        var percentage = i / total * 100;
+        var newColor = [];
+        for (var j = 0; j < 3; j++) {
+          newColor[j] = Math.round(colorStart[j] + (colorEnd[j] - colorStart[j]) * percentage / 100);
+        }
+        return newColor;
+      }
+
+
+        const map = new Map({
+          basemap: {
+            baseLayers: [new TileLayer({
+              url: 'https://tiles.arcgis.com/tiles/jIL9msH9OI208GCb/arcgis/rest/services/World_Relief_Map/MapServer'
+            })]
+          },
+          layers: [citiesLayer, graphicsLayer]
+        });
+
+        const view = new SceneView({
+          container: "viewDiv",
+          map: map,
+          qualityProfile: "high",
+          padding: {
+            left: 230
+          },
+          camera: {
+            position: [
+              5.96828612,
+              26.30104931,
+              1615575.19198
+            ],
+            heading: 17.90,
+            tilt: 47.68
+          }
+        });
+
+        window.parent.document.view = view;
+
+        function animateLine(paths, i) {
+
+          if (i < paths.length - 1) {
+            var polyPart = new Polyline({
+              paths: paths.slice(i, i + 2),
+              spatialReference: {
+                wkid: 3857
+              }
+            });
+
+            var lineSymbol = {
+              type: "simple-line",
+              color: getColor(i, paths.length),
+              width: 2
+            }
+
+            var polylineGraphic = new Graphic({
+              geometry: polyPart,
+              symbol: lineSymbol
+            });
+
+            graphicsLayer.add(polylineGraphic);
+
+            window.setTimeout(function () {
+              animateLine(paths, i + 1);
+            }, 50);
+          }
+        }
+
+        function startAnimation(points, t) {
+          if (t < points.length - 1) {
+            var polyline = new Polyline({
+              paths: [
+                [points[t].x, points[t].y, 0],
+                [points[t + 1].x, points[t + 1].y, 0]
+              ],
+              spatialReference: {
+                wkid: 3857
+              }
+            });
+
+            var densifiedPolyline = geometryEngine.densify(polyline, 30000, "meters");
+
+            var paths = densifiedPolyline.paths[0];
+
+            for (var i = 0; i < paths.length; i++) {
+              var path = paths[i];
+              path[2] = -20000 * i * i / (paths.length - 1) + i * 20000;
+              paths[i] = path;
+            }
+
+            window.setTimeout(function () {
+              animateLine(paths, 0);
+            }, 100);
+          }
+        }
+
+        document.getElementById("goToLille").addEventListener("click", function () {
+          startAnimation([travels[0], travels[1]], 0);
+        });
+
+        document.getElementById("goToMunchen").addEventListener("click", function () {
+          startAnimation([travels[1], travels[2]], 0);
+        });
+
+        document.getElementById("goToVienna").addEventListener("click", function () {
+          startAnimation([travels[2], travels[3]], 0);
+        });
+
+        document.getElementById("goToDresden").addEventListener("click", function () {
+          startAnimation([travels[3], travels[4]], 0);
+        });
+
+        document.getElementById("goToZernez").addEventListener("click", function () {
+          startAnimation([travels[4], travels[5]], 0);
+        });
+
+        document.getElementById("goToZurich").addEventListener("click", function () {
+          startAnimation([travels[5], travels[6]], 0);
+        });
+
+      });
+
+  </script>
+</head>
+
+<body>
+  <div id="viewDiv">
+  </div>
+  <div id="menu">
+    <h4>Universitate din București, Facultatea de Geografie</h4>
+    <h4>Erasmus, <span id="goToLille" class="click">Universitatea din Lille</span></h4>
+    <h4>Master de Cartografie,
+      <span id="goToMunchen" class="click">Universitatea Tehnică din Munchen</span>
+      <span id="goToVienna" class="click">Universitatea Tehnică din Viena</span>
+      <span id="goToDresden" class="click">Universitatea Tehnică din Dresda</span>
+    </h4>
+    <h4><span id="goToZernez" class="click">Parcul Național Elvețian</span>, Internship în GIS</h4>
+    <h4><span id="goToZurich" class="click">Institutul de Cartografie, ETH Zurich</span>, Asistent universitar</h4>
+    <h4>Esri R&D Center Zurich, Product Engineer</h4>
+  </div>
+</body>
+
+</html>
